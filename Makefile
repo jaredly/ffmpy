@@ -20,6 +20,10 @@ SO:=ffmpy.so
 #
 all: dirs $(addprefix lib/, $(SO)) tags
 
+py:
+	@rm frame_getter.c
+	@LDFLAGS="$(LDFLAGS) -L$(shell pwd)/lib" CFLAGS="$(CFLAGS) -I$(shell pwd)" python setup.py build_ext -i
+
 dirs:
 	mkdir -p obj
 	mkdir -p bin

@@ -27,14 +27,14 @@ void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
   fclose(pFile);
 }
 
-int cb(int64_t time, uint8_t* lines, int size, int width, int height, int i) {
+int cb(uint8_t id, int64_t time, uint8_t* lines, int size, int width, int height) {
     printf("Hi %" PRId64 "\n", time);
     return 0;
 }
 
-typedef int callback(int64_t time, uint8_t* lines, int size, int width, int height, int i);
+typedef int callback(uint8_t id, int64_t time, uint8_t* lines, int size, int width, int height);
 
-int open(char *fname, callback frameCallback) {
+int open(uint8_t id, char *fname, callback frameCallback) {
   AVFormatContext *pFormatCtx = NULL;
   int             i, videoStream;
   AVCodecContext  *pCodecCtx = NULL;
@@ -144,13 +144,13 @@ int open(char *fname, callback frameCallback) {
            pFrameRGB->linesize
           );
         quit = frameCallback(
-                pFrame->pkt_pts,
-                pFrameRGB->data[0],
-                pFrameRGB->linesize[0],
-                pCodecCtx->width,
-                pCodecCtx->height,
-                i
-            );
+            id,
+            pFrame->pkt_pts,
+            pFrameRGB->data[0],
+            pFrameRGB->linesize[0],
+            pCodecCtx->width,
+            pCodecCtx->height
+        );
         if (quit == 1) {
             break;
         }
@@ -190,7 +190,7 @@ int main(int argc, char *argv[]) {
     printf("Please provide a movie file\n");
     return -1;
   }
-  open(argv[1], cb);
+  open(0, argv[1], cb);
   return 0;
 }
 
