@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
 import frame_getter
+from PIL import Image
 
 def p(time, arr, *a):
     print 'hi'
     print time
     print arr.shape
-    return time > 3000
+    print arr[:10, 500:510]
+    im = Image.fromarray(arr)
+    im.save('ex.png')
+    return 1
 
 print 'Testing'
 print dir(frame_getter)
