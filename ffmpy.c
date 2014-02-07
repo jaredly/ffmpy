@@ -5,6 +5,8 @@
 
 #include <stdio.h>
 
+#include "ffmpy.h"
+
 void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
   FILE *pFile;
   char szFilename[32];
@@ -27,57 +29,62 @@ void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
   fclose(pFile);
 }
 
-int cb(int id, int time, int* lines, int size, int width, int height) {
+int cb(int id, int time, char* lines, int size, int width, int height) {
     printf("Hi %d\n", time);
     return 0;
 }
-
-typedef int callback(int id, int time, int* lines, int size, int width, int height);
 
 int other(int one) {
     return one * 2;
 }
 
-int open(int id, char *fname, callback frameCallback) {
-    /*
-  AVFormatContext *pFormatCtx = NULL;
-  int             i, videoStream;
-  AVCodecContext  *pCodecCtx = NULL;
-  AVCodec         *pCodec = NULL;
-  AVFrame         *pFrame = NULL; 
-  AVFrame         *pFrameRGB = NULL;
-  AVPacket        packet;
-  int             quit = 0;
-  int             frameFinished;
-  int             numBytes;
-  uint8_t         *buffer = NULL;
-  printf("1\n");
+int newpen(int id, char* fname, callback cb) {
+    AVFormatContext *pFormatCtx = NULL;
+    int             i, videoStream;
+    AVCodecContext  *pCodecCtx = NULL;
+    AVCodec         *pCodec = NULL;
+    AVFrame         *pFrame = NULL; 
+    AVFrame         *pFrameRGB = NULL;
+    AVPacket        packet;
+    int             quit = 0;
+    int             frameFinished;
+    int             numBytes;
+    uint8_t         *buffer = NULL;
+    printf("1\n");
+    AVDictionary    *optionsDict = NULL;
+    struct SwsContext      *sws_ctx = NULL;
+    // Register all formats and codecs
+    av_register_all();
 
-  AVDictionary    *optionsDict = NULL;
-  struct SwsContext      *sws_ctx = NULL;
-  // Register all formats and codecs
-  av_register_all();
-  
-  // Open video file
-  if(avformat_open_input(&pFormatCtx, fname, NULL, NULL)!=0)
-    return -1; // Couldn't open file
-  
-  // Retrieve stream information
-  if(avformat_find_stream_info(pFormatCtx, NULL)<0)
-    return -1; // Couldn't find stream information
-  
-  // Dump information about file onto standard error
-  av_dump_format(pFormatCtx, 0, fname, 0);
-  
-  // Find the first video stream
-  videoStream=-1;
-  for(i=0; i<pFormatCtx->nb_streams; i++)
-    if(pFormatCtx->streams[i]->codec->codec_type==AVMEDIA_TYPE_VIDEO) {
-      videoStream=i;
-      break;
+    // Open video file
+    if(avformat_open_input(&pFormatCtx, fname, NULL, NULL)!=0)
+        return -1; // Couldn't open file
+
+    // Retrieve stream information
+    if(avformat_find_stream_info(pFormatCtx, NULL)<0)
+        return -1; // Couldn't find stream information
+
+    // Dump information about file onto standard error
+    av_dump_format(pFormatCtx, 0, fname, 0);
+
+    // Find the first video stream
+    videoStream=-1;
+    for(i=0; i<pFormatCtx->nb_streams; i++) {
+        if(pFormatCtx->streams[i]->codec->codec_type==AVMEDIA_TYPE_VIDEO) {
+            videoStream=i;
+            break;
+        }
     }
-  if(videoStream==-1)
-    return -1; // Didn't find a video stream
+    if(videoStream==-1) {
+        return -1; // Didn't find a video stream
+    }
+    return 7;
+}
+
+int open(int id, char *fname, callback frameCallback) {
+    return 7;
+    /*
+
   
   // Get a pointer to the codec context for the video stream
   pCodecCtx=pFormatCtx->streams[videoStream]->codec;

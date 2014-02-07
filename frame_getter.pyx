@@ -8,7 +8,7 @@ cimport cython
 lookup = {}
 at = 0
 
-cdef int callback(int id, int time, int* data, int size, int width, int height):
+cdef int callback(int id, int time, cython.char* data, int size, int width, int height):
     print 'called', id, time
     # lookup[id](time)
     # for(y=0; y<height; y++)
@@ -21,6 +21,9 @@ def open(item, cb):
     lookup[at] = cb
     print 'hello'
     return ffmpy_link.open(at, item, callback)
+
+def newp(num, char* fname):
+    return ffmpy_link.newpen(num, fname, callback)
 
 def thing(num):
     return ffmpy_link.other(num)

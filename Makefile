@@ -47,3 +47,5 @@ clean:
 
 test:
 	@LD_LIBRARY_PATH="$(shell pwd)/lib" python tester.py
+
+.PHONY: test clean
