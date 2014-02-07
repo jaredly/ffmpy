@@ -1,0 +1,8 @@
+*.swp
+frame_getter.c
+frame_getter.so
+lib
+obj
+bin
+build
+tags

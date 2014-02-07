@@ -2,15 +2,15 @@
 # cython: binding=True
 
 cimport ffmpy_link
-cimport numpy as np
+# cimport numpy as np
 cimport cython
 
 lookup = {}
 at = 0
 
-cdef int callback(int id, np.int64_t time, np.int8_t* data, int size, int width, int height):
+cdef int callback(int id, int time, int* data, int size, int width, int height):
     print 'called', id, time
-    lookup[id](time)
+    # lookup[id](time)
     # for(y=0; y<height; y++)
         # fwrite(pFrame->data[0]+y*pFrame->linesize[0], 1, width*3, pFile);
     return 0
@@ -21,4 +21,7 @@ def open(item, cb):
     lookup[at] = cb
     print 'hello'
     return ffmpy_link.open(at, item, callback)
+
+def thing(num):
+    return ffmpy_link.other(num)
 

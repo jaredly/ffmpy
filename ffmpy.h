@@ -1,4 +1,4 @@
 
-typedef int callback(int id, int64_t time, uint8_t* lines, int size, int width, int height, int i);
+typedef int callback(int id, int time, int* lines, int size, int width, int height);
 int open(int id, char *fname, callback frameCallback);
-
+int other(int one);

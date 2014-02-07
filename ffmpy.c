@@ -27,14 +27,19 @@ void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
   fclose(pFile);
 }
 
-int cb(uint8_t id, int64_t time, uint8_t* lines, int size, int width, int height) {
-    printf("Hi %" PRId64 "\n", time);
+int cb(int id, int time, int* lines, int size, int width, int height) {
+    printf("Hi %d\n", time);
     return 0;
 }
 
-typedef int callback(uint8_t id, int64_t time, uint8_t* lines, int size, int width, int height);
+typedef int callback(int id, int time, int* lines, int size, int width, int height);
 
-int open(uint8_t id, char *fname, callback frameCallback) {
+int other(int one) {
+    return one * 2;
+}
+
+int open(int id, char *fname, callback frameCallback) {
+    /*
   AVFormatContext *pFormatCtx = NULL;
   int             i, videoStream;
   AVCodecContext  *pCodecCtx = NULL;
@@ -46,6 +51,7 @@ int open(uint8_t id, char *fname, callback frameCallback) {
   int             frameFinished;
   int             numBytes;
   uint8_t         *buffer = NULL;
+  printf("1\n");
 
   AVDictionary    *optionsDict = NULL;
   struct SwsContext      *sws_ctx = NULL;
@@ -76,6 +82,7 @@ int open(uint8_t id, char *fname, callback frameCallback) {
   // Get a pointer to the codec context for the video stream
   pCodecCtx=pFormatCtx->streams[videoStream]->codec;
   
+  printf("2\n");
   // Find the decoder for the video stream
   pCodec=avcodec_find_decoder(pCodecCtx->codec_id);
   if(pCodec==NULL) {
@@ -99,6 +106,7 @@ int open(uint8_t id, char *fname, callback frameCallback) {
 			      pCodecCtx->height);
   buffer=(uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
 
+  printf("3\n");
   sws_ctx =
     sws_getContext
     (
@@ -120,6 +128,7 @@ int open(uint8_t id, char *fname, callback frameCallback) {
   avpicture_fill((AVPicture *)pFrameRGB, buffer, PIX_FMT_RGB24,
 		 pCodecCtx->width, pCodecCtx->height);
   
+  printf("4\n");
   // Read frames and save first five frames to disk
   i=0;
   while(av_read_frame(pFormatCtx, &packet)>=0) {
@@ -129,6 +138,7 @@ int open(uint8_t id, char *fname, callback frameCallback) {
       avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, 
 			   &packet);
 
+      printf("5\n");
       // Did we get a video frame?
       if(frameFinished) {
         printf("Time %" PRId64 ", %" PRId64 "\n", pFrame->pkt_pts, pFrame->pkt_dts);
@@ -145,8 +155,8 @@ int open(uint8_t id, char *fname, callback frameCallback) {
           );
         quit = frameCallback(
             id,
-            pFrame->pkt_pts,
-            pFrameRGB->data[0],
+            (int)pFrame->pkt_pts,
+            (int*)pFrameRGB->data[0],
             pFrameRGB->linesize[0],
             pCodecCtx->width,
             pCodecCtx->height
@@ -156,12 +166,6 @@ int open(uint8_t id, char *fname, callback frameCallback) {
         }
         if (++i > 50) break;
 
-        /*
-        // Save the frame to disk
-        if(++i<=5)
-          SaveFrame(pFrameRGB, pCodecCtx->width, pCodecCtx->height, 
-              i);
-        */
       }
     }
 
@@ -183,6 +187,8 @@ int open(uint8_t id, char *fname, callback frameCallback) {
   avformat_close_input(&pFormatCtx);
 
   return 0;
+    */
+    return 5;
 }
 
 int main(int argc, char *argv[]) {

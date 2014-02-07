@@ -6,23 +6,22 @@ INCLUDES:=$(shell pkg-config --cflags libavformat libavcodec libswscale libavuti
 CFLAGS:=-Wall -ggdb
 LDFLAGS:=$(shell pkg-config --libs libavformat libavcodec libswscale libavutil sdl) -lm
 
-SO:=ffmpy.so
+SO:=libffmpy.so
 
 #
 # This is here to prevent Make from deleting secondary files.
 #
 .SECONDARY:
-	
 
 #
 # $< is the first dependency in the dependency list
 # $@ is the target name
 #
-all: dirs $(addprefix lib/, $(SO)) tags
+all: dirs bin/ffmpy.out $(addprefix lib/, $(SO)) tags
 
 py:
 	@rm frame_getter.c
-	@LDFLAGS="$(LDFLAGS) -L$(shell pwd)/lib" CFLAGS="$(CFLAGS) -I$(shell pwd)" python setup.py build_ext -i
+	@LD_LIBRARY_PATH="$(shell pwd)/lib/ffmpy.so" LDFLAGS="$(LDFLAGS) -L$(shell pwd)/lib/" CFLAGS="$(CFLAGS) -L$(shell pwd)/lib/ -I$(shell pwd)" python setup.py build_ext -i
 
 dirs:
 	mkdir -p obj
@@ -35,7 +34,7 @@ tags: *.c
 bin/%.out: obj/%.o
 	$(CC) $(CFLAGS) $< $(LDFLAGS) -o $@
 
-lib/%.so : %.c
+lib/lib%.so : %.c
 	$(CC) $(CFLAGS) $< $(INCLUDES) $(LDFLAGS) -fPIC -shared -o $@
 
 obj/%.o : %.c
@@ -46,3 +45,5 @@ clean:
 	rm -f bin/*
 	rm -f tags
 
+test:
+	@LD_LIBRARY_PATH="$(shell pwd)/lib" python tester.py
