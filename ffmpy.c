@@ -144,7 +144,7 @@ int newpen(int id, char* fname, callback cb) {
 
       // Did we get a video frame?
       if(frameFinished) {
-        printf("Time %" PRId64 ", %" PRId64 "\n", pFrame->pkt_pts, pFrame->pkt_dts);
+        // printf("Time %" PRId64 ", %" PRId64 "\n", pFrame->pkt_pts, pFrame->pkt_dts);
         // Convert the image from its native format to RGB
         sws_scale
           (

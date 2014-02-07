@@ -2,9 +2,10 @@
 
 import frame_getter
 
-def p(time, *a):
+def p(time, arr, *a):
     print 'hi'
     print time
+    print arr.shape
     return time > 3000
 
 print 'Testing'
