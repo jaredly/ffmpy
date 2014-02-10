@@ -162,7 +162,7 @@ int newpen(int id, char* fname, callback cb) {
           );
         quit = cb(
             id,
-            ++i,
+            i++,
             (int)pFrame->pkt_pts,
             (int)pFrame->pkt_dts,
             (char*)pFrameRGB->data[0],

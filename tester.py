@@ -3,13 +3,14 @@
 import frame_getter
 from PIL import Image
 
-def p(pts, dts, arr, *a):
+def p(i, pts, dts, arr):
     print pts, dts
     print arr.shape
     # print arr[:10, 500:510]
     # jim = Image.fromarray(arr)
     # jim.save('ex.png')
-    return 0
+    if i > 10:
+        return pts
 
 print 'Testing'
 print dir(frame_getter)
