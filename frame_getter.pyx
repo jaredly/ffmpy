@@ -9,41 +9,25 @@ cnp.import_array()
 lookup = {}
 at = 0
 
+datas = {}
+rets = {}
+
 cdef object toArray(cython.char* data, int size, int width, int height):
     cdef cnp.npy_intp shape[3]
     shape[0] = <cnp.npy_intp> height
     shape[1] = <cnp.npy_intp> width
     shape[2] = <cnp.npy_intp> 3
     basic = cnp.PyArray_SimpleNewFromData(3, shape, cnp.NPY_UINT8, data)
-    print size, width, height
-
-    '''
-    arr = np.zeros((height, width, 3), dtype=np.uint8)
-    cdef int x, y
-    for y in range(height):
-        for x in range(width):
-            arr[y][x][0] = (<cnp.uint8_t*>(data + y*size))[0]
-            arr[y][x][1] = (<cnp.uint8_t*>(data + y*size + 1))[0]
-            arr[y][x][2] = (<cnp.uint8_t*>(data + y*size + 2))[0]
-            '''
+    # print size, width, height
     return np.array(basic, copy=False)
 
-cdef object toArray1(cython.char* data, int size, int width, int height):
-    arr = np.zeros((height, width, 3), dtype=np.uint8)
-    cdef int x, y
-    for y in range(height):
-        for x in range(width):
-            arr[y][x][0] = (<cnp.uint8_t*>(data + y*size))[0]
-            arr[y][x][1] = (<cnp.uint8_t*>(data + y*size + 1))[0]
-            arr[y][x][2] = (<cnp.uint8_t*>(data + y*size + 2))[0]
-
-cdef int callback(int id, int time, cython.char* data, int size, int width, int height):
-    print 'called', id, time
+cdef int callback(int id, int pts, int dts, cython.char* data, int size, int width, int height):
+    print 'called', id, pts, dts
     # for(y=0; y<height; y++)
         # fwrite(pFrame->data[0]+y*pFrame->linesize[0], 1, width*3, pFile);
     arr = toArray(data, size, width, height)
     try:
-        result = lookup[id](time, arr)
+        result = lookup[id](pts, dts, arr)
     except Exception as e:
         print 'Callback failed', e
         return 1
@@ -51,12 +35,50 @@ cdef int callback(int id, int time, cython.char* data, int size, int width, int 
         return result
     return 1 if result else 0
 
-def newp(num, char* fname, cb):
+def newp(char* fname, cb):
     global at, lookup
     at += 1
     lookup[at] = cb
     return ffmpy_link.newpen(at, fname, callback)
 
-def thing(num):
-    return ffmpy_link.other(num)
+def keyframe(char* fname, separation=2, minsize=50 * 50):
+    global at, lookup
+    at += 1
+    lookup[at] = cb
+    cdef cnp.ndarray[cnp.NPY_UINT8, ndim=3] window[separation]
+    datas[at] = window, separation, minsize, limit
+
+    ffmpy_link.newpen(at, fname, findKeyframe)
+    return rets.get(at, None)
+
+cdef int callback(int id, int i, int pts, int dts, cython.char* data, int size, int width, int height):
+    if not id in lookup:
+        return 1
+    arr = toArray(data, size, width, height)
+
+    cdef cnp.npy_intp shape[3]
+    shape[0] = <cnp.npy_intp> height
+    shape[1] = <cnp.npy_intp> width
+    shape[2] = <cnp.npy_intp> 3
+    cdef cnp.ndarray[cnp.NPY_UINT8, ndim=3] basic = cnp.PyArray_SimpleNewFromData(3, shape, cnp.NPY_UINT8, data)
+
+    window, separation, minsize, limit = datas[id]
+    if i > limit:
+        return 1
+    window.append(basic)
+    if len(window) > separation + 1:
+        window.pop(0)
+    if len(window) < separation:
+        return 0
+
+    size, chunk = find_screens(window[:bef], window[af:])
+
+    try:
+        result = lookup[id](pts, dts, arr)
+    except Exception as e:
+        print 'Callback failed', e
+        return 1
+    if type(result) == int:
+        return result
+    return 1 if result else 0
 

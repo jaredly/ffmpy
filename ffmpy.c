@@ -7,6 +7,8 @@
 
 #include "ffmpy.h"
 
+
+/*
 void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
   FILE *pFile;
   char szFilename[32];
@@ -28,8 +30,10 @@ void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
   // Close file
   fclose(pFile);
 }
+*/
 
-int cb(int id, int time, char* lines, int size, int width, int height) {
+
+int cb(int id, int pts, int dts, char* lines, int size, int width, int height) {
   printf("Hi %d\n", time);
   return 0;
 }
@@ -158,7 +162,9 @@ int newpen(int id, char* fname, callback cb) {
           );
         quit = cb(
             id,
+            ++i,
             (int)pFrame->pkt_pts,
+            (int)pFrame->pkt_dts,
             (char*)pFrameRGB->data[0],
             pFrameRGB->linesize[0],
             pCodecCtx->width,
@@ -167,8 +173,7 @@ int newpen(int id, char* fname, callback cb) {
         if (quit == 1) {
           break;
         }
-        if (++i > 50) break;
-
+        if (i > 50) break;
       }
     }
 
