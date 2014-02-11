@@ -22,6 +22,7 @@ def findChunk(fname, limit=1000, separation=2, minsize=50 * 50):
     bef = separation // 2
     af = int(ceil(separation / 2.0))
     def cb(i, num, den, start, dur, pts, dts, arr):
+        print 'things'
         if i > limit:
             return False
      

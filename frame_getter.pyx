@@ -42,7 +42,9 @@ def newp(char* fname, cb):
     global at, lookup
     at += 1
     lookup[at] = cb
-    ffmpy_link.newpen(at, fname, callback)
+    res = ffmpy_link.getFrames(at, fname, callback)
+    if res == -1:
+        raise Exception('Failed to get frames')
     return lookup[at]
 
 '''
