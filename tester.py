@@ -22,7 +22,6 @@ def findChunk(fname, limit=1000, separation=2, minsize=50 * 50):
     bef = separation // 2
     af = int(ceil(separation / 2.0))
     def cb(i, num, den, start, dur, pts, dts, arr):
-        print 'things'
         if i > limit:
             return False
      
@@ -76,6 +75,9 @@ print dir(frame_getter)
 # print frame_getter.newp('../data/AML_20140114_102434.mp4', p)
 
 fname = '../data/AML_20140114_102434.mp4'
-print findChunk(fname, 300, minsize=500)
+if findChunk(fname, 400, minsize=500)[0]:
+    print 'yes'
+else:
+    print 'no'
 
 # vim: et sw=4 sts=4
