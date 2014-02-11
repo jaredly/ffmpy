@@ -142,43 +142,21 @@ int initState(char* fname, state *s) {
   s->optionsDict  = optionsDict;
 }
 
-int getFrames(int id, char* fname, callback cb) {
-  int             i, videoStream;
-
-  state s;
-
-  s.buffer = NULL;
-  s.pCodec = NULL;
-  s.pFrame = NULL; 
-  s.sws_ctx = NULL;
-  s.pCodecCtx = NULL;
-  s.pFrameRGB = NULL;
-  s.pFormatCtx = NULL;
-  s.optionsDict = NULL;
-
-  initState(fname, &s);
-
-  uint8_t         *buffer = s.buffer ;
-  AVCodec         *pCodec = s.pCodec ;
-  AVFrame         *pFrame = s.pFrame ; 
-  struct SwsContext *sws_ctx = s.sws_ctx ;
-  AVCodecContext  *pCodecCtx = s.pCodecCtx ;
-  AVFrame         *pFrameRGB = s.pFrameRGB ;
-  AVFormatContext *pFormatCtx = s.pFormatCtx ;
-  AVDictionary    *optionsDict = s.optionsDict ;
-
+void processFrames(state *s, callback cb) {
   AVPacket        packet;
   int             quit = 0;
+  int i=0;
   int             numBytes;
   int             frameFinished;
+  int id = s->id;
 
   // Read frames and save first five frames to disk
   i=0;
-  while(av_read_frame(pFormatCtx, &packet)>=0) {
+  while(av_read_frame(s->pFormatCtx, &packet)>=0) {
     // Is this a packet from the video stream?
-    if(packet.stream_index==videoStream) {
+    if(packet.stream_index==s->videoStream) {
       // Decode video frame
-      avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, 
+      avcodec_decode_video2(s->pCodecCtx, s->pFrame, &frameFinished, 
           &packet);
 
       // Did we get a video frame?
@@ -187,27 +165,27 @@ int getFrames(int id, char* fname, callback cb) {
         // Convert the image from its native format to RGB
         sws_scale
           (
-           sws_ctx,
-           (uint8_t const * const *)pFrame->data,
-           pFrame->linesize,
+           s->sws_ctx,
+           (uint8_t const * const *)s->pFrame->data,
+           s->pFrame->linesize,
            0,
-           pCodecCtx->height,
-           pFrameRGB->data,
-           pFrameRGB->linesize
+           s->pCodecCtx->height,
+           s->pFrameRGB->data,
+           s->pFrameRGB->linesize
           );
         quit = cb(
             id,
             i++,
-            (int)pFormatCtx->streams[videoStream]->time_base.num,
-            (int)pFormatCtx->streams[videoStream]->time_base.den,
-            (int)pFormatCtx->streams[videoStream]->start_time,
-            (int)pFormatCtx->streams[videoStream]->duration,
-            (int)pFrame->pkt_pts,
-            (int)pFrame->pkt_dts,
-            (char*)pFrameRGB->data[0],
-            pFrameRGB->linesize[0],
-            pCodecCtx->width,
-            pCodecCtx->height
+            (int)s->pFormatCtx->streams[s->videoStream]->time_base.num,
+            (int)s->pFormatCtx->streams[s->videoStream]->time_base.den,
+            (int)s->pFormatCtx->streams[s->videoStream]->start_time,
+            (int)s->pFormatCtx->streams[s->videoStream]->duration,
+            (int)s->pFrame->pkt_pts,
+            (int)s->pFrame->pkt_dts,
+            (char*)s->pFrameRGB->data[0],
+            s->pFrameRGB->linesize[0],
+            s->pCodecCtx->width,
+            s->pCodecCtx->height
             );
         if (quit == 1) {
           break;
@@ -219,27 +197,45 @@ int getFrames(int id, char* fname, callback cb) {
     // Free the packet that was allocated by av_read_frame
     av_free_packet(&packet);
   }
-  // Free the RGB image
-  av_free(buffer);
-  av_free(pFrameRGB);
+}
 
-  // Free the YUV frame
-  av_free(pFrame);
+int getFrames(int id, char* fname, callback cb) {
 
-  // Close the codec
-  avcodec_close(pCodecCtx);
+  state s;
 
-  // Close the video file
-  avformat_close_input(&pFormatCtx);
+  s.id = id;
+  s.buffer = NULL;
+  s.pCodec = NULL;
+  s.pFrame = NULL; 
+  s.sws_ctx = NULL;
+  s.pCodecCtx = NULL;
+  s.pFrameRGB = NULL;
+  s.pFormatCtx = NULL;
+  s.optionsDict = NULL;
+
+  if (-1 == initState(fname, &s)) {
+    return -1;
+  }
+
+  processFrames(&s, cb);
+
+  cleanupState(&s);
   return 7;
 }
 
-int main(int argc, char *argv[]) {
-  if(argc < 2) {
-    printf("Please provide a movie file\n");
-    return -1;
-  }
-  newpen(0, argv[1], cb);
-  return 0;
+void cleanupState(state *s) {
+
+  // Free the RGB image
+  av_free(s->buffer);
+  av_free(s->pFrameRGB);
+
+  // Free the YUV frame
+  av_free(s->pFrame);
+
+  // Close the codec
+  avcodec_close(s->pCodecCtx);
+
+  // Close the video file
+  avformat_close_input(&(s->pFormatCtx));
 }
 
