@@ -7,16 +7,26 @@
 
 #include "ffmpy.h"
 
+/*
 int cb(int id, int i, int num, int den, int start, int dur, int pts, int dts, char* lines, int size, int width, int height) {
   printf("Hi %d\n", time);
   return 0;
 }
+*/
 
 void processFrames(state *s, callback cb) {
   AVPacket   packet;
   int        quit = 0;
   int        i=0;
   int        frameFinished;
+  status     st;
+
+  st.numerator = (int)s->pFormatCtx->streams[s->videoStream]->time_base.num;
+  st.denominator = (int)s->pFormatCtx->streams[s->videoStream]->time_base.den;
+  st.start_time = (int)s->pFormatCtx->streams[s->videoStream]->start_time;
+  st.duration = (int)s->pFormatCtx->streams[s->videoStream]->duration;
+  st.width = s->pCodecCtx->width;
+  st.height = s->pCodecCtx->height;
 
   // Read frames and save first five frames to disk
   i=0;
@@ -41,20 +51,15 @@ void processFrames(state *s, callback cb) {
            s->pFrameRGB->data,
            s->pFrameRGB->linesize
           );
-        quit = cb(
-            s->id,
-            i++,
-            (int)s->pFormatCtx->streams[s->videoStream]->time_base.num,
-            (int)s->pFormatCtx->streams[s->videoStream]->time_base.den,
-            (int)s->pFormatCtx->streams[s->videoStream]->start_time,
-            (int)s->pFormatCtx->streams[s->videoStream]->duration,
-            (int)s->pFrame->pkt_pts,
-            (int)s->pFrame->pkt_dts,
-            (char*)s->pFrameRGB->data[0],
-            s->pFrameRGB->linesize[0],
-            s->pCodecCtx->width,
-            s->pCodecCtx->height
-            );
+
+        st.play_time = (int)s->pFrame->pkt_pts;
+        st.decode_time = (int)s->pFrame->pkt_dts;
+        st.line_size = s->pFrameRGB->linesize[0];
+        st.data = (char*)s->pFrameRGB->data[0];
+        st.index = i++;
+
+        quit = cb(s->id, st);
+
         if (quit == 1) {
           break;
         }

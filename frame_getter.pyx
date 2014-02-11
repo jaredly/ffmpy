@@ -18,13 +18,13 @@ cdef object toArray(cython.char* data, int size, int width, int height):
     # print size, width, height
     return np.array(basic, copy=False)
 
-cdef int callback(int id, int i, int num, int den, int start, int dur, int pts, int dts, cython.char* data, int size, int width, int height):
+cdef int callback(int id, ffmpy_link.status status):
     # print 'called', i, pts, dts
     # for(y=0; y<height; y++)
         # fwrite(pFrame->data[0]+y*pFrame->linesize[0], 1, width*3, pFile);
-    arr = toArray(data, size, width, height)
+    arr = toArray(status.data, status.size, status.width, status.height)
     try:
-        result = lookup[id](i, num, den, start, dur, pts, dts, arr)
+        result = lookup[id](status.index, status.numerator, status.denominator, status.start_time, status.duration, status.play_time, status.decode_time, arr)
     except Exception as e:
         print 'Callback failed', e
         lookup[id] = e
