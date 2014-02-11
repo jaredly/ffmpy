@@ -15,7 +15,7 @@ setup(
     ext_modules = [
         Extension(
             name="frame_getter",
-            sources=["frame_getter.pyx", 'ffmpy.c'],
+            sources=["frame_getter.pyx", 'ffmpy.c', 'ffmpy-setup.c'],
             include_dirs=[numpy.get_include()],
             language='c',
             extra_compile_args = COMP.split(),
