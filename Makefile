@@ -21,7 +21,7 @@ all: dirs bin/ffmpy.out $(addprefix lib/, $(SO)) tags
 
 py:
 	@rm frame_getter.c
-	@LD_LIBRARY_PATH="$(shell pwd)/lib/ffmpy.so" LDFLAGS="$(LDFLAGS) -L$(shell pwd)/lib/" CFLAGS="$(CFLAGS) -L$(shell pwd)/lib/ -I$(shell pwd)" python setup.py build_ext -i
+	python setup.py build_ext -i
 
 dirs:
 	mkdir -p obj

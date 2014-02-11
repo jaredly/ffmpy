@@ -33,7 +33,7 @@ void SaveFrame(AVFrame *pFrame, int width, int height, int iFrame) {
 */
 
 
-int cb(int id, int pts, int dts, char* lines, int size, int width, int height) {
+int cb(int id, int i, int num, int den, int start, int dur, int pts, int dts, char* lines, int size, int width, int height) {
   printf("Hi %d\n", time);
   return 0;
 }
@@ -163,6 +163,10 @@ int newpen(int id, char* fname, callback cb) {
         quit = cb(
             id,
             i++,
+            (int)pFormatCtx->streams[videoStream]->time_base.num,
+            (int)pFormatCtx->streams[videoStream]->time_base.den,
+            (int)pFormatCtx->streams[videoStream]->start_time,
+            (int)pFormatCtx->streams[videoStream]->duration,
             (int)pFrame->pkt_pts,
             (int)pFrame->pkt_dts,
             (char*)pFrameRGB->data[0],
@@ -173,7 +177,7 @@ int newpen(int id, char* fname, callback cb) {
         if (quit == 1) {
           break;
         }
-        if (i > 50) break;
+        // if (i > 5000) break;
       }
     }
 
